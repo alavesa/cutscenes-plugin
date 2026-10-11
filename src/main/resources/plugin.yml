@@ -1,0 +1,17 @@
+name: Cutscenes
+version: '${project.version}'
+main: fi.alavesa.cutscenes.CutscenesPlugin
+api-version: '1.21'
+depend: [BetterModel]
+description: Blockbench models (via BetterModel) spawned into the world or played inside cutscenes with animation chaining and camera shots driven by a camera group in the model.
+author: alavesa
+commands:
+  cutscene:
+    description: Cutscene and model commands
+    aliases: [cs]
+    usage: /cutscene help
+    permission: cutscenes.admin
+permissions:
+  cutscenes.admin:
+    description: Create, edit, play and stop cutscenes; spawn models
+    default: op

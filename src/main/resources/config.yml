@@ -1,0 +1,28 @@
+# Cutscenes - configuration
+
+camera:
+  # Name of the Blockbench group whose position + rotation drives the camera when a cutscene uses a
+  # "bone" camera shot without naming a bone.
+  bone-name: camera
+  # If the model also has a group with this name, the camera looks AT that group's position instead of
+  # along the camera group's own axis. The most reliable way to aim a camera from Blockbench.
+  target-bone: camera_target
+  # Which local axis of the camera group is "forward" when there is no target bone: +x -x +y -y +z -z.
+  # Axes are BetterModel's (x and z are mirrored from Blockbench): "+z" = Blockbench north (-z), the
+  # direction a model built the Model-Engine/BetterModel way faces. Flip to "-z" if the camera looks backwards.
+  forward-axis: "+z"
+  # Spectated camera entity: client-side interpolation length in ticks (1 = smooth 20 Hz, 0 = snap).
+  teleport-duration: 1
+
+models:
+  # World-spawned models (/cutscene model spawn) are shown to players within this many blocks.
+  spawn-radius: 64
+
+cutscenes:
+  # When true every player on the server sees the cutscene actors; when false only the viewers do.
+  actors-visible-to-all: false
+  # Ticks between "player put into spectator" and "player's camera locked to the cutscene camera".
+  # The camera entity has to reach the client first; 2 is safe.
+  camera-lock-delay: 2
+  # Ticks a cutscene keeps running after its last event when it has no explicit length.
+  default-tail: 20
