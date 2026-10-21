@@ -1,7 +1,6 @@
 package fi.alavesa.cutscenes;
 
 import fi.alavesa.cutscenes.camera.CameraShot;
-import kr.toxicity.model.api.animation.AnimationIterator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -64,7 +63,7 @@ public final class CutsceneCommand implements TabExecutor {
     // ---------------------------------------------------------------- help
 
     private void help(CommandSender s, String topic) {
-        info(s, "§6Cutscenes " + plugin.getDescription().getVersion() + " §7— models come from BetterModel (plugins/BetterModel/models, /bettermodel reload)");
+        info(s, "§6Cutscenes " + plugin.getDescription().getVersion() + " §7— models come from plugins/Cutscenes/models via RP Engine (plugins/RPEngine/content/cutscenes/models, /bettermodel reload)");
         if (topic.equalsIgnoreCase("model") || topic.isEmpty()) {
             info(s, "§eWorld models");
             info(s, "/cs model spawn <model> [animation] [loop|once|hold] [scale]");
@@ -102,12 +101,12 @@ public final class CutsceneCommand implements TabExecutor {
             case "spawn" -> {
                 Player p = player(s); if (p == null) return;
                 if (a.length < 2) { err(s, "model spawn <model> [animation] [loop|once|hold] [scale]"); return; }
-                if (Bm.model(a[1]) == null) { err(s, "BetterModel has no model '" + a[1] + "'. Known: " + Bm.modelNames()); return; }
+                if (Rpe.model(a[1]) == null) { err(s, "RP Engine has no model '" + a[1] + "'. Known: " + Rpe.modelNames()); return; }
                 float scale = a.length > 4 ? Float.parseFloat(a[4]) : 1f;
                 ModelActor m = wm.spawn(wm.freeId(a[1]), a[1], p.getLocation(), scale);
                 if (m == null) { err(s, "could not create the model"); return; }
                 if (a.length > 2) {
-                    if (!wm.animate(m.id, a[2], a.length > 3 ? a[3] : "loop", 1f)) err(s, "no animation '" + a[2] + "' (has: " + Bm.animationNames(m.model) + ")");
+                    if (!wm.animate(m.id, a[2], a.length > 3 ? a[3] : "loop", 1f)) err(s, "no animation '" + a[2] + "' (has: " + Rpe.animationNames(m.model) + ")");
                 }
                 ok(s, "spawned " + m.model + " as §f" + m.id + "§a at your position" + (m.currentAnimation() != null ? ", playing " + m.currentAnimation() : ""));
             }
@@ -119,7 +118,7 @@ public final class CutsceneCommand implements TabExecutor {
                 if (a.length < 2) { err(s, "model " + a[0] + " <id>"); return; }
                 ModelActor m = wm.get(a[1]);
                 if (m == null) { err(s, "no world model '" + a[1] + "'"); return; }
-                info(s, "§f" + m.id + "§7 model " + m.model + ", animations: " + Bm.animationNames(m.model));
+                info(s, "§f" + m.id + "§7 model " + m.model + ", animations: " + Rpe.animationNames(m.model));
                 info(s, "bones (world position now, use these names for camera shots):");
                 for (String b : m.boneNames()) { Vector3d v = m.bonePosition(b); info(s, String.format("  %s%s §8%.2f %.2f %.2f", b.equalsIgnoreCase(plugin.settings().cameraBone) || b.equalsIgnoreCase(plugin.settings().targetBone) ? "§e" : "§f", b, v == null ? 0 : v.x, v == null ? 0 : v.y, v == null ? 0 : v.z)); }
             }
@@ -135,7 +134,7 @@ public final class CutsceneCommand implements TabExecutor {
                 ModelActor m = wm.get(a[1]);
                 if (m == null) { err(s, "no world model '" + a[1] + "'"); return; }
                 if (wm.animate(a[1], a[2], a.length > 3 ? a[3] : "loop", a.length > 4 ? Float.parseFloat(a[4]) : 1f)) ok(s, m.id + " plays " + m.currentAnimation());
-                else err(s, "no animation '" + a[2] + "' (has: " + Bm.animationNames(m.model) + ")");
+                else err(s, "no animation '" + a[2] + "' (has: " + Rpe.animationNames(m.model) + ")");
             }
             case "stop" -> { if (a.length < 2) { err(s, "model stop <id>"); return; } if (wm.animate(a[1], null, null, 1f)) ok(s, "stopped"); else err(s, "no world model '" + a[1] + "'"); }
             case "move" -> {
@@ -173,7 +172,7 @@ public final class CutsceneCommand implements TabExecutor {
     private void infoCutscene(CommandSender s, String name) {
         CutsceneDef d = def(s, name); if (d == null) return;
         info(s, "§f" + d.name + "§7 world " + d.world + ", length " + (d.length < 0 ? "auto " : "") + d.computedLength(plugin.settings().defaultTail) + "t, actors visible to " + (d.actorsVisibleToAll == null ? "(default)" : d.actorsVisibleToAll ? "all" : "viewers"));
-        for (ActorDef ad : d.actors.values()) info(s, String.format("  actor §f%s§7 = %s @ %.1f %.1f %.1f yaw %.0f%s%s", ad.id, ad.model, ad.x, ad.y, ad.z, ad.yaw, ad.animation == null ? "" : " plays " + ad.animation + " (" + ad.loop + ")", Bm.model(ad.model) == null ? " §c(model missing)" : ""));
+        for (ActorDef ad : d.actors.values()) info(s, String.format("  actor §f%s§7 = %s @ %.1f %.1f %.1f yaw %.0f%s%s", ad.id, ad.model, ad.x, ad.y, ad.z, ad.yaw, ad.animation == null ? "" : " plays " + ad.animation + " (" + ad.loop + ")", Rpe.model(ad.model) == null ? " §c(model missing)" : ""));
         for (int i = 0; i < d.events.size(); i++) {
             EventDef e = d.events.get(i);
             String desc = e.describe();
@@ -191,10 +190,10 @@ public final class CutsceneCommand implements TabExecutor {
             case "add" -> {
                 Player p = player(s); if (p == null) return;
                 if (a.length < 4) { err(s, "actor add <cs> <id> <model> [animation] [loop|once|hold] [scale]"); return; }
-                if (Bm.model(a[3]) == null) { err(s, "BetterModel has no model '" + a[3] + "'. Known: " + Bm.modelNames()); return; }
+                if (Rpe.model(a[3]) == null) { err(s, "RP Engine has no model '" + a[3] + "'. Known: " + Rpe.modelNames()); return; }
                 ActorDef ad = new ActorDef(id, a[3], p.getLocation());
-                if (a.length > 4) { ad.animation = Bm.animation(a[3], a[4]); if (ad.animation == null) err(s, "no animation '" + a[4] + "' - actor added without one (has: " + Bm.animationNames(a[3]) + ")"); }
-                if (a.length > 5) ad.loop = Bm.loopName(Bm.loop(a[5], AnimationIterator.Type.LOOP));
+                if (a.length > 4) { ad.animation = Rpe.animation(a[3], a[4]); if (ad.animation == null) err(s, "no animation '" + a[4] + "' - actor added without one (has: " + Rpe.animationNames(a[3]) + ")"); }
+                if (a.length > 5) ad.loop = Rpe.loopName(Rpe.loop(a[5], Rpe.Loop.LOOP));
                 if (a.length > 6) ad.scale = Float.parseFloat(a[6]);
                 d.actors.put(id, ad);
                 plugin.store().save(d);
@@ -217,17 +216,17 @@ public final class CutsceneCommand implements TabExecutor {
             case "animate" -> {
                 if (r.length < 2) { err(s, "add <cs> <tick> animate <actor> <animation> [loop|once|hold] [speed] [then <animation> [loop]]"); return; }
                 ActorDef ad = d.actors.get(r[0]); if (ad == null) { err(s, "no actor " + r[0] + " (" + d.actors.keySet() + ")"); return; }
-                String anim = Bm.animation(ad.model, r[1]); if (anim == null) { err(s, "no animation '" + r[1] + "' (has: " + Bm.animationNames(ad.model) + ")"); return; }
+                String anim = Rpe.animation(ad.model, r[1]); if (anim == null) { err(s, "no animation '" + r[1] + "' (has: " + Rpe.animationNames(ad.model) + ")"); return; }
                 e.set("actor", ad.id).set("animation", anim);
                 int i = 2;
-                if (i < r.length && !r[i].equalsIgnoreCase("then")) { e.set("loop", Bm.loopName(Bm.loop(r[i], AnimationIterator.Type.LOOP))); i++; }
+                if (i < r.length && !r[i].equalsIgnoreCase("then")) { e.set("loop", Rpe.loopName(Rpe.loop(r[i], Rpe.Loop.LOOP))); i++; }
                 if (i < r.length && !r[i].equalsIgnoreCase("then")) { e.set("speed", Double.parseDouble(r[i])); i++; }
                 if (i < r.length && r[i].equalsIgnoreCase("then")) {
                     if (i + 1 >= r.length) { err(s, "then <animation> [loop|once|hold]"); return; }
-                    String then = Bm.animation(ad.model, r[i + 1]); if (then == null) { err(s, "no animation '" + r[i + 1] + "'"); return; }
+                    String then = Rpe.animation(ad.model, r[i + 1]); if (then == null) { err(s, "no animation '" + r[i + 1] + "'"); return; }
                     e.set("then", then);
                     if (!e.data.containsKey("loop")) e.set("loop", "once");
-                    if (i + 2 < r.length) e.set("then-loop", Bm.loopName(Bm.loop(r[i + 2], AnimationIterator.Type.LOOP)));
+                    if (i + 2 < r.length) e.set("then-loop", Rpe.loopName(Rpe.loop(r[i + 2], Rpe.Loop.LOOP)));
                 }
             }
             case "stop" -> { if (r.length < 1) { err(s, "add <cs> <tick> stop <actor>"); return; } e.set("actor", r[0]); }
@@ -393,14 +392,14 @@ public final class CutsceneCommand implements TabExecutor {
             if (a.length == 2) return filter(List.of("spawn", "list", "info", "bones", "remove", "animate", "stop", "move"), a[1]);
             String ms = a[1].toLowerCase(Locale.ROOT);
             if (a.length == 3) {
-                if (ms.equals("spawn")) return filter(Bm.modelNames(), a[2]);
+                if (ms.equals("spawn")) return filter(Rpe.modelNames(), a[2]);
                 List<String> ids = new ArrayList<>(); for (ModelActor m : plugin.worldModels().all()) ids.add(m.id);
                 if (ms.equals("remove")) { ids.add("nearest"); ids.add("all"); }
                 return filter(ids, a[2]);
             }
             if (a.length == 4) {
-                if (ms.equals("spawn")) return filter(Bm.animationNames(a[2]), a[3]);
-                if (ms.equals("animate")) { ModelActor m = plugin.worldModels().get(a[2]); return m == null ? out : filter(Bm.animationNames(m.model), a[3]); }
+                if (ms.equals("spawn")) return filter(Rpe.animationNames(a[2]), a[3]);
+                if (ms.equals("animate")) { ModelActor m = plugin.worldModels().get(a[2]); return m == null ? out : filter(Rpe.animationNames(m.model), a[3]); }
             }
             if (a.length == 5 && (ms.equals("spawn") || ms.equals("animate"))) return filter(List.of("loop", "once", "hold"), a[4]);
             return out;
@@ -418,8 +417,8 @@ public final class CutsceneCommand implements TabExecutor {
                 if (a.length == 3) return filter(plugin.store().all().keySet(), a[2]);
                 CutsceneDef dd = plugin.store().get(a[2]);
                 if (a.length == 4 && dd != null && !a[1].equalsIgnoreCase("add")) return filter(dd.actors.keySet(), a[3]);
-                if (a.length == 5 && a[1].equalsIgnoreCase("add")) return filter(Bm.modelNames(), a[4]);
-                if (a.length == 6 && a[1].equalsIgnoreCase("add")) return filter(Bm.animationNames(a[4]), a[5]);
+                if (a.length == 5 && a[1].equalsIgnoreCase("add")) return filter(Rpe.modelNames(), a[4]);
+                if (a.length == 6 && a[1].equalsIgnoreCase("add")) return filter(Rpe.animationNames(a[4]), a[5]);
                 if (a.length == 7 && a[1].equalsIgnoreCase("add")) return filter(List.of("loop", "once", "hold"), a[6]);
             }
             case "add" -> {
@@ -437,10 +436,10 @@ public final class CutsceneCommand implements TabExecutor {
                     if (a.length == 5) return filter(d.actors.keySet(), a[4]);
                     ActorDef ad = d.actors.get(a[4]);
                     if (t.equals("animate") && ad != null) {
-                        if (a.length == 6) return filter(Bm.animationNames(ad.model), a[5]);
+                        if (a.length == 6) return filter(Rpe.animationNames(ad.model), a[5]);
                         if (a.length == 7) return filter(List.of("loop", "once", "hold", "then"), a[6]);
                         if (a.length == 8) return filter(List.of("1.0", "then"), a[7]);
-                        if (a[a.length - 2].equalsIgnoreCase("then")) return filter(Bm.animationNames(ad.model), a[a.length - 1]);
+                        if (a[a.length - 2].equalsIgnoreCase("then")) return filter(Rpe.animationNames(ad.model), a[a.length - 1]);
                         if (a.length > 3 && a[a.length - 3].equalsIgnoreCase("then")) return filter(List.of("loop", "once", "hold"), a[a.length - 1]);
                     }
                 }

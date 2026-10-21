@@ -8,8 +8,8 @@ camera:
   # along the camera group's own axis. The most reliable way to aim a camera from Blockbench.
   target-bone: camera_target
   # Which local axis of the camera group is "forward" when there is no target bone: +x -x +y -y +z -z.
-  # Axes are BetterModel's (x and z are mirrored from Blockbench): "+z" = Blockbench north (-z), the
-  # direction a model built the Model-Engine/BetterModel way faces. Flip to "-z" if the camera looks backwards.
+  # Axes: Blockbench's own: "+z" = Blockbench north (-z), the
+  # direction a model built the Model-Engine/RP Engine way faces. Flip to "-z" if the camera looks backwards.
   forward-axis: "+z"
   # Spectated camera entity: client-side interpolation length in ticks (1 = smooth 20 Hz, 0 = snap).
   teleport-duration: 1

@@ -97,7 +97,7 @@ public final class EventDef {
             case "animate" -> {
                 ActorDef a = def.actors.get(s("actor", ""));
                 if (a == null || !s("loop", "loop").equals("once")) yield 0;
-                int t = Bm.animationTicks(a.model, Bm.animation(a.model, s("animation", "")));
+                int t = Rpe.animationTicks(a.model, Rpe.animation(a.model, s("animation", "")));
                 yield t < 0 ? 0 : (int) (t / Math.max(0.01, d("speed", 1)));
             }
             case "title" -> i("fade-in", 10) + i("stay", 40) + i("fade-out", 10);

@@ -6,11 +6,11 @@
 
   <groupId>fi.alavesa</groupId>
   <artifactId>cutscenes</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <packaging>jar</packaging>
 
   <name>Cutscenes</name>
-  <description>Blockbench (.bbmodel) actors rendered by BetterModel, spawned into the world or played inside cutscenes with animation chaining and camera shots driven by a camera group in the model.</description>
+  <description>Blockbench (.bbmodel) actors rendered by RP Engine, spawned into the world or played inside cutscenes with animation chaining and camera shots driven by a camera group in the model.</description>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
@@ -32,20 +32,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <!-- BetterModel API (hard dependency at runtime, see plugin.yml). The jar is the paper release jar
-           installed into the local Maven repo:
-           mvn install:install-file -Dfile=bettermodel-3.5.0-paper.jar -DgroupId=kr.toxicity.model \
-               -DartifactId=bettermodel -Dversion=3.5.0 -Dpackaging=jar -->
-      <groupId>kr.toxicity.model</groupId>
-      <artifactId>bettermodel</artifactId>
-      <version>3.5.0</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>ai.resourcepack</groupId>
+      <artifactId>rp-engine</artifactId>
+      <version>0.2.22</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/libs/RPEngine-0.2.22.jar</systemPath>
     </dependency>
   </dependencies>
 

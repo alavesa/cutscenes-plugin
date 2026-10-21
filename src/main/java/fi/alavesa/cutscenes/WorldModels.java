@@ -1,6 +1,5 @@
 package fi.alavesa.cutscenes;
 
-import kr.toxicity.model.api.animation.AnimationIterator;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -41,12 +40,12 @@ public final class WorldModels {
             if (w == null) { plugin.getLogger().warning("models.yml: world of '" + id + "' not loaded, skipped"); continue; }
             Location l = new Location(w, s.getDouble("x"), s.getDouble("y"), s.getDouble("z"), (float) s.getDouble("yaw"), (float) s.getDouble("pitch"));
             ModelActor a = new ModelActor(plugin, id, s.getString("model", id), l, (float) s.getDouble("scale", 1.0));
-            if (!a.spawn()) { plugin.getLogger().warning("models.yml: BetterModel has no model '" + a.model + "' for '" + id + "' (plugins/BetterModel/models/, /bettermodel reload)"); }
+            if (!a.spawn()) { plugin.getLogger().warning("models.yml: RP Engine has no model '" + a.model + "' for '" + id + "' (plugins/Cutscenes/models/, /cutscene reload)"); }
             actors.put(id, a);
             String anim = s.getString("animation", null);
             if (anim != null) {
                 anims.put(id, new String[] {anim, s.getString("loop", "loop"), String.valueOf(s.getDouble("speed", 1.0))});
-                a.animate(anim, Bm.loop(s.getString("loop", "loop"), AnimationIterator.Type.LOOP), (float) s.getDouble("speed", 1.0), null);
+                a.animate(anim, Rpe.loop(s.getString("loop", "loop"), Rpe.Loop.LOOP), (float) s.getDouble("speed", 1.0), null);
             }
         }
         plugin.getLogger().info("Loaded " + actors.size() + " world model(s).");
@@ -104,8 +103,8 @@ public final class WorldModels {
         ModelActor a = actors.get(id);
         if (a == null) return false;
         if (animation == null) { a.stopAnimation(); anims.remove(id); save(); return true; }
-        boolean ok = a.animate(animation, Bm.loop(loop, AnimationIterator.Type.LOOP), speed, null);
-        if (ok) { anims.put(id, new String[] {a.currentAnimation(), Bm.loopName(Bm.loop(loop, AnimationIterator.Type.LOOP)), String.valueOf(speed)}); save(); }
+        boolean ok = a.animate(animation, Rpe.loop(loop, Rpe.Loop.LOOP), speed, null);
+        if (ok) { anims.put(id, new String[] {a.currentAnimation(), Rpe.loopName(Rpe.loop(loop, Rpe.Loop.LOOP)), String.valueOf(speed)}); save(); }
         return ok;
     }
 

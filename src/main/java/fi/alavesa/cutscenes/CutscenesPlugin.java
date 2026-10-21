@@ -1,6 +1,7 @@
 package fi.alavesa.cutscenes;
 
-import kr.toxicity.model.api.BetterModel;
+import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -24,7 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Cutscenes - Blockbench models (rendered by BetterModel) standing in the world or acting in cutscenes
+ * Cutscenes - Blockbench models (rendered by RP Engine) standing in the world or acting in cutscenes
  * with chained animations and camera shots driven by the model's own camera group.
  */
 public final class CutscenesPlugin extends JavaPlugin implements Listener {
@@ -53,12 +54,14 @@ public final class CutscenesPlugin extends JavaPlugin implements Listener {
         getCommand("cutscene").setTabCompleter(cmd);
         Bukkit.getPluginManager().registerEvents(this, this);
 
-        // BetterModel loads its models during its own enable; our world models need them, so spawn next tick
+        new File(getDataFolder(), "models").mkdirs();
+        // Our .bbmodel files -> RP Engine's content folder (it builds + serves the pack); world models spawn next tick
+        try { Rpe.sync(new File(getDataFolder(), "models"), getLogger()); } catch (Throwable t) { getLogger().warning("RP Engine sync failed: " + t); }
         Bukkit.getScheduler().runTask(this, () -> {
             sweepStaleCameras();
             worldModels.load();
             hookReload();
-            getLogger().info("BetterModel models available: " + Bm.modelNames());
+            getLogger().info("RP Engine models available: " + Rpe.modelNames());
         });
         Bukkit.getScheduler().runTaskTimer(this, this::tick, 1L, 1L);
         getLogger().info("Cutscenes " + getDescription().getVersion() + " enabled.");
@@ -75,16 +78,17 @@ public final class CutscenesPlugin extends JavaPlugin implements Listener {
 
     private void hookReload() {
         if (reloadHooked) return;
-        try {
-            BetterModel.platform().addReloadEndHandler(result -> Bukkit.getScheduler().runTask(this, () -> {
-                getLogger().info("BetterModel reloaded - re-creating " + worldModels.all().size() + " world model(s)" + (runs.isEmpty() ? "" : " and " + runs.size() + " running cutscene(s)"));
-                worldModels.respawnAll();
-                for (CutsceneRun r : runs) r.respawnActors();
-            }));
-            reloadHooked = true;
-        } catch (Throwable t) {
-            getLogger().warning("Could not hook BetterModel reload (models will not re-appear after /bettermodel reload until /cutscene reload): " + t);
-        }
+        Bukkit.getPluginManager().registerEvents(new org.bukkit.event.Listener() {
+            @org.bukkit.event.EventHandler
+            public void onContentLoad(ai.resourcepack.engine.api.event.ContentLoadEvent e) {
+                Bukkit.getScheduler().runTask(CutscenesPlugin.this, () -> {
+                    getLogger().info("RP Engine reloaded - re-creating " + worldModels.all().size() + " world model(s)" + (runs.isEmpty() ? "" : " and " + runs.size() + " running cutscene(s)"));
+                    worldModels.respawnAll();
+                    for (CutsceneRun r : runs) r.respawnActors();
+                });
+            }
+        }, this);
+        reloadHooked = true;
     }
 
     private void tick() {

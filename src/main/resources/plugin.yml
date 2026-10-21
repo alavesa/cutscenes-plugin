@@ -2,8 +2,8 @@ name: Cutscenes
 version: '${project.version}'
 main: fi.alavesa.cutscenes.CutscenesPlugin
 api-version: '1.21'
-depend: [BetterModel]
-description: Blockbench models (via BetterModel) spawned into the world or played inside cutscenes with animation chaining and camera shots driven by a camera group in the model.
+depend: [RPEngine]
+description: Blockbench models (via RP Engine) spawned into the world or played inside cutscenes with animation chaining and camera shots driven by a camera group in the model.
 author: alavesa
 commands:
   cutscene:

@@ -8,7 +8,6 @@ import fi.alavesa.cutscenes.camera.OrbitShot;
 import fi.alavesa.cutscenes.camera.PathShot;
 import fi.alavesa.cutscenes.camera.Pose;
 import fi.alavesa.cutscenes.camera.StaticShot;
-import kr.toxicity.model.api.animation.AnimationIterator;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.title.Title;
@@ -33,7 +32,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * A playing cutscene: its actors (BetterModel dummy trackers), its camera entity (an invisible
+ * A playing cutscene: its actors (RP Engine dummy trackers), its camera entity (an invisible
  * ItemDisplay that every viewer spectates - Display entities interpolate position AND rotation
  * client-side, so a 20 Hz teleport stream reads as smooth motion) and the timeline cursor.
  */
@@ -99,7 +98,7 @@ public final class CutsceneRun {
         }
         Location l = a.location();
         double h = 1.0;
-        try { if (a.isSpawned()) h = Math.max(0.5, a.tracker().height()) / 2.0; } catch (Throwable ignored) { }
+        try { if (a.isSpawned()) h = Math.max(0.5, a.height()) / 2.0; } catch (Throwable ignored) { }
         return new Vector3d(l.getX(), l.getY() + h, l.getZ());
     }
 
@@ -114,9 +113,9 @@ public final class CutsceneRun {
         for (ActorDef ad : def.actors.values()) {
             ModelActor a = new ModelActor(plugin, ad.id, ad.model, ad.location(), ad.scale);
             if (!a.spawn()) {
-                warn("actor '" + ad.id + "': BetterModel has no model '" + ad.model + "'");
+                warn("actor '" + ad.id + "': RP Engine has no model '" + ad.model + "'");
             } else if (ad.animation != null) {
-                a.animate(ad.animation, Bm.loop(ad.loop, AnimationIterator.Type.LOOP), ad.speed, null);
+                a.animate(ad.animation, Rpe.loop(ad.loop, Rpe.Loop.LOOP), ad.speed, null);
             }
             actors.put(ad.id, a);
         }
@@ -336,16 +335,16 @@ public final class CutsceneRun {
         String anim = e.s("animation", null);
         if (anim == null) return;
         String then = e.s("then", null);
-        AnimationIterator.Type loop = Bm.loop(e.s("loop", then != null ? "once" : "loop"), AnimationIterator.Type.LOOP);
+        Rpe.Loop loop = Rpe.loop(e.s("loop", then != null ? "once" : "loop"), Rpe.Loop.LOOP);
         float speed = (float) e.d("speed", 1);
         Runnable onEnd = null;
         if (then != null) {
-            AnimationIterator.Type thenLoop = Bm.loop(e.s("then-loop", "loop"), AnimationIterator.Type.LOOP);
+            Rpe.Loop thenLoop = Rpe.loop(e.s("then-loop", "loop"), Rpe.Loop.LOOP);
             float thenSpeed = (float) e.d("then-speed", speed);
             onEnd = () -> { if (!ended && !a.animate(then, thenLoop, thenSpeed, null)) warn("then: model '" + a.model + "' has no animation '" + then + "'"); };
-            if (loop != AnimationIterator.Type.PLAY_ONCE) warn("animate at " + e.at + ": 'then' only fires after a loop: once clip (clip '" + anim + "' is " + Bm.loopName(loop) + ")");
+            if (loop != Rpe.Loop.ONCE) warn("animate at " + e.at + ": 'then' only fires after a loop: once clip (clip '" + anim + "' is " + Rpe.loopName(loop) + ")");
         }
-        if (!a.animate(anim, loop, speed, onEnd)) warn("model '" + a.model + "' has no animation '" + anim + "' (has: " + Bm.animationNames(a.model) + ")");
+        if (!a.animate(anim, loop, speed, onEnd)) warn("model '" + a.model + "' has no animation '" + anim + "' (has: " + Rpe.animationNames(a.model) + ")");
     }
 
     private void runCommand(String cmd, List<Player> ps) {
